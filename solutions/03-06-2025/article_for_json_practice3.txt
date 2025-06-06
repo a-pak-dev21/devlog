@@ -1,0 +1,9 @@
+Writing code is an art. Sometimes you're inspired, sometimes you stare at a semicolon for thirty minutes. But each new project makes you better.
+
+That's why daily practice matters. It doesn't have to be long — consistency is more important than intensity.
+
+Python is a great language for beginners. It's readable, powerful, and widely used in the industry. You'll find it in data analysis, web development, automation, and even game design.
+
+Git helps you track changes in your code. GitHub makes it collaborative. Don't forget to commit your work daily.
+
+Good luck on your journey to becoming a developer!
