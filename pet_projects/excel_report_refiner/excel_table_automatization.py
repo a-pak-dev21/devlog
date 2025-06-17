@@ -38,34 +38,34 @@ class DataCleaner:
             return json.load(f)
 
     def remove_invalid_dob(self) -> None:
-        if not isinstance(self.df["DoB"].iloc[0], str):
-            self.df["DoB"] = self.df["DoB"].dt.strftime("%d.%m.%Y")
+        if not isinstance(self.df["datum narození"].iloc[0], str):
+            self.df["datum narození"] = self.df["datum narození"].dt.strftime("%d.%m.%Y")
 
-        self.df = self.df[self.df["DoB"] != "00.00.0000"].copy()
+        self.df = self.df[self.df["datum narození"] != "00.00.0000"].copy()
 
     def check_first_name(self) -> None:
-        blank_name = self.df[(self.df["FirstName"].isna()) & (self.df["LastName"].str.split(" ").str.len() >= 2)]
-        for idx, row in blank_name[["LastName", "FirstName"]].iterrows():
-            split_name = row["LastName"].split(" ")
+        blank_name = self.df[(self.df["jméno"].isna()) & (self.df["příjmení"].str.split(" ").str.len() >= 2)]
+        for idx, row in blank_name[["příjmení", "jméno"]].iterrows():
+            split_name = row["příjmení"].split(" ")
             last_name, first_name = " ".join(split_name[:-1]), split_name[-1]
-            self.df.loc[idx, ["LastName", "FirstName"]] = last_name, first_name
-        self.df = self.df.dropna(subset=["FirstName"])
+            self.df.loc[idx, ["příjmení", "jméno"]] = last_name, first_name
+        self.df = self.df.dropna(subset=["jméno"])
 
     def viza_validation(self) -> None:
-        self.df = self.df[(~self.df["Nationality"].isin(self.viza_obligated))
-                          | ((self.df["Nationality"].isin(self.viza_obligated)) & (self.df["VizaNumber"].notna()))]
-        self.df["VizaNumber"] = self.df["VizaNumber"].fillna("")
+        self.df = self.df[(~self.df["státní občanství"].isin(self.viza_obligated))
+                          | ((self.df["státní občanství"].isin(self.viza_obligated)) & (self.df["číslo víza"].notna()))]
+        self.df["číslo víza"] = self.df["číslo víza"].fillna("")
 
     def missing_pass_no(self) -> None:
-        self.df = self.df.dropna(subset=["PassportNumber"])
+        self.df = self.df.dropna(subset=["číslo cestovního dokladu"])
 
     def fill_rsn_of_stay(self) -> None:
-        self.df["ReasonOfStay"] = self.df["ReasonOfStay"].fillna("10")
+        self.df["Unnamed: 13"] = self.df["Unnamed: 13"].fillna("10")
 
     def address_filler(self) -> None:
-        self.df["Address"] = self.df.apply(
-            lambda row: choice(self.addresses[row["Nationality"]]) if (len(str(row["Address"])) < 5) and
-            (row["Nationality"] in self.addresses) else row["Address"],
+        self.df[","] = self.df.apply(
+            lambda row: choice(self.addresses[row["státní občanství"]]) if (len(str(row[","])) < 5) and
+            (row["státní občanství"] in self.addresses) else row[","],
             axis=1
         )
 
@@ -82,8 +82,8 @@ class DataCleaner:
 csv_path = Path("data/visa_obligated.csv")
 json_path = Path("data/addresses_data.json")
 
-x = DataCleaner("guest_file.xlsx", "Sheet1", csv_path, json_path)
-df_out = x.apply_changes()
-print(df_out.sample(5)[["LastName", "FirstName", "Nationality","Address","VizaNumber","ReasonOfStay"]])
+my_df = DataCleaner("Ubydata_19B.xls", "Seznam", csv_path, json_path)
+df_out = my_df.apply_changes()
+df_out.to_excel("solution.xlsx", index=False)
 
 
