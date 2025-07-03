@@ -18,7 +18,7 @@ class DataCleaner:
     def __init__(self, file_name: str, sheet_name: str, viza_path: str | Path, addresses_path: str | Path) -> None:
         assert isinstance(file_name, str), "The name of file should be a string value"
         assert isinstance(sheet_name, str), "Insert valid name of the excel sheet"
-        self.file_dir = Path("data") / file_name
+        self.file_dir = Path("draft") / file_name
         self.df = pd.read_excel(self.file_dir, sheet_name=sheet_name)
         self.viza_obligated = self._load_viza_required(viza_path)
         self.addresses = self._load_addresses(addresses_path)
@@ -56,7 +56,7 @@ class DataCleaner:
                           | ((self.df["státní občanství"].isin(self.viza_obligated)) & (self.df["číslo víza"].notna()))]
         self.df["číslo víza"] = self.df["číslo víza"].fillna("")
 
-    def missing_pass_no(self) -> None:
+    def pass_no_filter(self) -> None:
         self.df = self.df.dropna(subset=["číslo cestovního dokladu"])
 
     def fill_rsn_of_stay(self) -> None:
@@ -71,7 +71,7 @@ class DataCleaner:
 
     def apply_changes(self) -> pd.DataFrame:
         self.remove_invalid_dob()
-        self.missing_pass_no()
+        self.pass_no_filter()
         self.check_first_name()
         self.viza_validation()
         self.fill_rsn_of_stay()
@@ -84,6 +84,16 @@ json_path = Path("data/addresses_data.json")
 
 my_df = DataCleaner("Ubydata_19B.xls", "Seznam", csv_path, json_path)
 df_out = my_df.apply_changes()
-df_out.to_excel("solution.xlsx", index=False)
+df_out.to_excel("draft/solution.xlsx", index=False)
 
 
+# TODO: 1) correctly return all columns data types? mostly string, or dates
+#       2) fix addresses with duplicate cities, and "Street 1"
+#       3) if iso2 index in address is not in my json, update it
+#       by adding new key and notify about this, so i would know to
+#       add new values to this keys
+#       4) remove duplicate guests by passport number and names
+#       pretty much 2 rows would be the same so maybe set()?
+#       5) len(pass) <= 5
+#       6) pass = "XXXXXX123"
+#       7) len(firstName) > 1 word

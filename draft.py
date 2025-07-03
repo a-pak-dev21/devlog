@@ -1,2 +1,5 @@
-lst = [1,2,3,4,5]
-print(len(lst[:0]))
+from datetime import datetime
+
+s = '2025-06-25'
+x = datetime.strptime()
+print()
