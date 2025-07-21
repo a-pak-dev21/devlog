@@ -28,6 +28,7 @@
 
 import random
 
+from pygments.lexers.robotframework import VARIABLE
 
 BOARD_SIZE: int = 10
 SHIPS: dict[str: int] = {
@@ -133,11 +134,6 @@ class Board:
             self.place_the_ship(ship_size)
         self.ships_placed = True
 
-    # TODO: clear_the_board method should be able to reset the field to completely blank one
-    #  and better (if it's possible now or later) add the logic that it can be called only before
-    #  game start or after it's end(somebody won) not during the game to avoid bugs.
-    #  This method will be used as a part of rearranging_ships method as a helping one
-
     def clear_the_board(self) -> None:
         for x in range(BOARD_SIZE):
             for y in range(BOARD_SIZE):
@@ -162,15 +158,38 @@ class Player:
     #           4) method to show my state of my board
     #           5) method to show off statistic
 
-    def __init__(self, mode: str) -> None:
-        self.turn: bool = False
-        self.my_board: Board = Board()
-        self.opponent: Player | Bot = Player() if mode == "PvP" else Bot()
-        self.opponent_board = self.opponent.my_board
+
+# TODO: как указать в тайп хинтсах что оппонент может быть тоже игроком или ботом внутри самого класса Игрока перед
+#  инициализацией бота
+
+    def __init__(self, opponent: self | Bot) -> None:
+        self.is_turn = False
+        self.own_board = Board()
+        self.opponent_board = .board
+
+    def set_ships(self):
+        self.own_board.place_all_ships(test_sizes)
+        while input(
+                f"Do you like how your ships placed?\n{self.own_board}\nIf yes enter: yes\nIf not, enter: no"
+        ).lower() != "yes":
+            self.own_board.rearrange_ships()
+
+    #  TODO: ПЕРЕНЕСТИ этот метод в класс Game позже когда буду работать над ним, а лучше спросить у чата
+    #   если так будет хорошо?
 
 
-        self.opponent: Player | Bot = Player() if mode == "PvP" else Bot()
-        self.opponent_board = self.opponent.my_board
+    def shooting(self, coords: str) -> str:
+
+        # TODO: в классе самой игры, добавить бесконечное задание,
+        #  пока переданные координаты с инпута не будут соответствовать формату(<буква заглавная><цифра>)
+
+        if len(coords) != 2 or coords[0] not in VER_COL_ALIAS or coords[1] not in range(1, 11):
+            return "Invalid coordinates sent, try again!\n"
+
+        x, y = VER_COL_ALIAS[coords[0].upper()], int(coords[1])
+        if self.own_board[y][x] ==
+
+
 
 
 class Bot:
@@ -183,15 +202,44 @@ class Bot:
 # ship_w = Ship(1)
 
 
-test_list = [1, 1, 2, 3, 4]
+class Game:
 
-x = Board()
-x.place_all_ships(test_list)
-print(x)
-x.rearrange_ships()
-print(x)
-x.clear_the_board()
-print(x)
+    # TODO: по предварительной логике в этом классе будут собраны все вспомогательные методы которые будут вызывать
+    #  методы с других классов объединять их и из этого будет складываться игровая логика.
+
+
+    def _shot_status(self, x: int, y: int, shooter: Player | Bot, victim: Player | Bot):
+        if  victim.own_board.board[y][x] == "■":
+            victim.own_board.board[y][x] = "X"
+
+            # TODO: как по мне это идеальное место для реализации декоратора,
+            #  добавим/изменим функционал метода get_surrounding_cells / can_be_placed
+            #  чтобы проверить если вокруг есть части корабля живые и он ранен или нету и он полностью утонул
+
+            if victim.own_board.get_surrounding_cells([(y, x)]):
+                pass
+
+
+        elif victim.own_board.board[y][x] == "~":
+            victim.own_board.board[y][x] = "*"
+            player.
+
+
+
+test_sizes = [1, 1, 2, 3, 4]
+
+var = Board()
+var.place_all_ships(test_sizes)
+print(var)
+var.rearrange_ships()
+print(var)
+var.clear_the_board()
+print(var)
 # lst = [ship_x, ship_e, ship_w, ship_q]
 # for elem in lst:
 #     x.place_the_ship(elem)
+
+игрок будет иметь 2 поля первое его второе будет использовать референс на собсвтенное поля его опонента.
+при выстреле будет изменяться поле опонента но надо продумать как будет отображаться поле для игрока так чтобы
+не было видно кораблей на поле противника. Скорее всего возвращать борд только с теми куда попал или промазал
+это : Х или * а другие заполнить ~ символом.

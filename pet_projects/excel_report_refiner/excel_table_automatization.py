@@ -69,6 +69,21 @@ class DataCleaner:
             axis=1
         )
 
+    @staticmethod
+    def _address_cleaner(address: str) -> str:
+        parts: list[str] = [part.strip() for part in address.split(", ")]
+        if len(parts) != 3:
+            return address
+
+        iso2, first_part, second_part = parts
+        if first_part.capitalize() == "Street 1" or first_part.capitalize() == second_part.capitalize():
+            return f"{iso2}, {second_part}"
+
+        return address
+
+    def address_modifier(self):
+        self.df[","] = self.df[","].apply(self._address_cleaner)
+
     def apply_changes(self) -> pd.DataFrame:
         self.remove_invalid_dob()
         self.pass_no_filter()
@@ -88,6 +103,8 @@ df_out.to_excel("draft/solution.xlsx", index=False)
 
 
 # TODO: 1) correctly return all columns data types? mostly string, or dates
+#       1a) Already done, since we will use openpyxl all datatypes
+#       and formatting will keep the same
 #       2) fix addresses with duplicate cities, and "Street 1"
 #       3) if iso2 index in address is not in my json, update it
 #       by adding new key and notify about this, so i would know to
@@ -97,3 +114,13 @@ df_out.to_excel("draft/solution.xlsx", index=False)
 #       5) len(pass) <= 5
 #       6) pass = "XXXXXX123"
 #       7) len(firstName) > 1 word
+
+# TODO: 1) изменить путь к файлу, попробовать реализовать на копии .xlsm
+#       2) реализовать функцию которая будет очищать клетки и
+#       записывать туда новые значения из датафрейма
+#       (from openpyxl.utils.dataframe import dataframe_to_rows)
+#       3) функция которая будет чистить снизу вверх оставшиеся пустые строки
+#       4) pyinstaller --onefile <name_of_py_file> создается dist папка, туда перекинуть папку data
+#       и папку где будет храниться Ubydata_19B
+#       5) всю папку целиком кинуть на рабочий ПК -> $$$
+
