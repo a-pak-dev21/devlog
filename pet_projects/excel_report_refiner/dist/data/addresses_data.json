@@ -1,0 +1,212 @@
+{
+  "SVK": [
+    "SK, Bratislava",
+    "SK, Kosice",
+    "SK, Trencin",
+    "SK, Poprad",
+    "SK, Nitra",
+    "SK, Zilina"
+  ],
+  "DEU": [
+    "DE, Berlin",
+    "DE, Frankfurt",
+    "DE, Dresden"
+  ],
+  "POL": [
+    "PL, Warsaw",
+    "PL, Krakow",
+    "PL, Katowice"
+  ],
+  "ESP": [
+    "ES, Madrid",
+    "ES, Valencia",
+    "ES, Zaragoza"
+  ],
+  "AUT": [
+    "AT, Vienna",
+    "AT, Villach",
+    "AT, Salzburg"
+  ],
+  "UKR": [
+    "UA, Odesa",
+    "UA, Kyiv",
+    "UA, Lviv"
+  ],
+  "USA": [
+    "US, California",
+    "US, Miami",
+    "US, Chicago",
+    "US, Dallas",
+    "US, Houston",
+    "US, Austin"
+  ],
+  "GBR": [
+    "GB, Manchester",
+    "GB, Liverpool",
+    "GB, London"
+  ],
+  "CHN": [
+    "CN, Beijing",
+    "CN, Shanghai",
+    "CN, Harbin"
+  ],
+  "JPN": [
+    "JP, Tokyo",
+    "JP, Kyoto",
+    "JP, Osaka"
+  ],
+  "BEL": [
+    "BE, Brussels",
+    "BE, Namur",
+    "BE, Ghent"
+  ],
+  "PRT": [
+    "PT, Lisbon",
+    "PT, Evora",
+    "PT, Porto"
+  ],
+  "CHE": [
+    "CH, Zurich",
+    "CH, Basel",
+    "CH, Bern"
+  ],
+  "SWE": [
+    "SE, Stockholm",
+    "SE, Malmoe",
+    "SE, Uppsala"
+  ],
+  "DNK": [
+    "DK, Copenhagen",
+    "DK, Aarhus",
+    "DK, Odense"
+  ],
+  "FIN": [
+    "FI, Helsinki",
+    "FI, Espoo",
+    "FI, Tampere"
+  ],
+  "GRC": [
+    "GR, Athens",
+    "GR, Piraeus",
+    "GR, Patras"
+  ],
+  "THA": [
+    "TH, Bangkok",
+    "TH, Phuket",
+    "TH, Pattaya"
+  ],
+  "BRA": [
+    "BR, Brasilia",
+    "BR, Sao Paulo",
+    "BR, Rio de Janeiro"
+  ],
+  "IRL": [
+    "IE, Dublin",
+    "IE, Cork"
+  ],
+  "FRA": [
+    "FR, Paris",
+    "FR, Lyon",
+    "FR, Marseille"
+  ],
+  "ITA": [
+    "IT, Rome",
+    "IT, Florence",
+    "IT, Milan",
+    "IT, Turin"
+  ],
+  "IND": [
+    "IN, New Delhi",
+    "IN, Mumbai",
+    "IN, Surat"
+  ],
+  "ISR": [
+    "IL, Tel Aviv",
+    "IL, Jerusalem"
+  ],
+  "IDN": [
+    "ID, Jakarta",
+    "ID, Medan",
+    "ID, Kendari"
+  ],
+  "NLD": [
+    "NL, Amsterdam",
+    "NL, Eindhoven",
+    "NL, Rotterdam"
+  ],
+  "KOR": [
+    "KR, Seoul",
+    "KR, Incheon",
+    "KR, Busan"
+  ],
+  "ARE": [
+    "AE, Dubai",
+    "AE, Abu Dhabi"
+  ],
+  "SAU": [
+    "SA, Riyadh",
+    "SA, Jeddah"
+  ],
+  "TUR": [
+    "TR, Antalya",
+    "TR, Istanbul",
+    "TR, Ankara"
+  ],
+  "ROU": [
+    "RO, Bucharest",
+    "RO, Brasov"
+  ],
+  "NOR": [
+    "NO, Oslo",
+    "NO, Bergen"
+  ],
+  "MEX": [
+    "MX, Mexico City",
+    "MX, Monterrey"
+  ],
+  "EGY": [
+    "EG, Cairo",
+    "EG, Alexandria"
+  ],
+  "CAN": [
+    "CA, Toronto",
+    "CA, Vancouver",
+    "CA, Ottawa"
+  ],
+  "HUN": [
+    "HU, Budapest",
+    "HU, Pecs"
+  ],
+  "BGR": [
+    "BG, Sofia",
+    "BG, Vratsa"
+  ],
+  "SVN": [
+    "SI, Ljubljana",
+    "SI, Maribor"
+  ],
+  "SRB": [
+    "RS, Belgrade",
+    "RS, Nis"
+  ],
+  "TWN": [
+    "TW, Taipei",
+    "TW, Hsinchu"
+  ],
+  "RUS": [
+    "RU, Moscow",
+    "Ru, Saint-Petersburg"
+  ],
+  "BLR": [
+    "BY, Minsk",
+    "BY, Brest"
+  ],
+  "LTU": [
+    "LT, Vilnius",
+    "LT, Trakai"
+  ],
+  "LVA": [
+    "LV, Riga",
+    "LV, Jelgava"
+  ]
+}

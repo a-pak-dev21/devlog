@@ -13,5 +13,3 @@ def greetings() -> dict[str, str]:
 app.include_router(exercise_router, prefix="/exercises", tags=["Exercises"])
 
 
-exercise_router.
-

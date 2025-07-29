@@ -4,15 +4,18 @@ See guest_cleaner_README.md for detailed specification and usage.
 """
 
 import pandas as pd
+from pandas import isna
 from pathlib import Path
 import json
-import openpyxl
+from openpyxl import load_workbook
+from openpyxl.utils.dataframe import dataframe_to_rows
 from random import choice
+from pet_projects.excel_report_refiner.logs.loggers import countries_logger
 
 
 class DataCleaner:
 
-    # Initializing path to our data_file and new instance of DataFrame to work with datas
+    # Initializing path to our data_file and new instance of DataFrame to work with data
     # Also control if both values are strings
 
     def __init__(self, file_name: str, sheet_name: str, viza_path: str | Path, addresses_path: str | Path) -> None:
@@ -22,6 +25,8 @@ class DataCleaner:
         self.df = pd.read_excel(self.file_dir, sheet_name=sheet_name)
         self.viza_obligated = self._load_viza_required(viza_path)
         self.addresses = self._load_addresses(addresses_path)
+        self.wb = load_workbook(self.file_dir)
+        self.ws = self.wb[sheet_name]
 
     # From this part, we will start to modify our table
     # First in priorities we will perform all method which removing
@@ -33,7 +38,7 @@ class DataCleaner:
         return set(pd.read_csv(path)["Visa Obligated"])
 
     @staticmethod
-    def _load_addresses(path: str | Path):
+    def _load_addresses(path: str | Path) -> json:
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
 
@@ -43,7 +48,16 @@ class DataCleaner:
 
         self.df = self.df[self.df["datum narození"] != "00.00.0000"].copy()
 
+    def remove_duplicates(self) -> None:
+        self.df = self.df.drop_duplicates(subset=["příjmení", "jméno", "číslo cestovního dokladu"])
+
+    @staticmethod
+    def _check_first_name(first_name: str) -> str:
+        split_name: list[str] = first_name.split(" ")
+        return " ".join(split_name[:2]) if len(split_name) > 2 else first_name
+
     def check_first_name(self) -> None:
+        self.df["jméno"] = self.df["jméno"].apply(self._check_first_name)
         blank_name = self.df[(self.df["jméno"].isna()) & (self.df["příjmení"].str.split(" ").str.len() >= 2)]
         for idx, row in blank_name[["příjmení", "jméno"]].iterrows():
             split_name = row["příjmení"].split(" ")
@@ -56,18 +70,29 @@ class DataCleaner:
                           | ((self.df["státní občanství"].isin(self.viza_obligated)) & (self.df["číslo víza"].notna()))]
         self.df["číslo víza"] = self.df["číslo víza"].fillna("")
 
-    def pass_no_filter(self) -> None:
+    def pass_filter(self) -> None:
         self.df = self.df.dropna(subset=["číslo cestovního dokladu"])
+        self.df = self.df[self.df["číslo cestovního dokladu"].str.len() > 5]
+        self.df = self.df[~self.df["číslo cestovního dokladu"].str.startswith("XXXX")]
 
     def fill_rsn_of_stay(self) -> None:
         self.df["Unnamed: 13"] = self.df["Unnamed: 13"].fillna("10")
 
-    def address_filler(self) -> None:
-        self.df[","] = self.df.apply(
-            lambda row: choice(self.addresses[row["státní občanství"]]) if (len(str(row[","])) < 5) and
-            (row["státní občanství"] in self.addresses) else row[","],
-            axis=1
-        )
+    def _address_filter(self, row: pd.Series) -> str | None:
+        address = row[","]
+        nationality = row["státní občanství"]
+        if not isinstance(address, str) or len(address) < 5:
+            if row["státní občanství"] in self.addresses:
+                return choice(self.addresses[nationality])
+            else:
+                countries_logger.info(f"The Country with ISO3: {nationality} is not in list of countries")
+                return f"{address} DOPLNIT!!!"
+        return address
+
+    def address_filter(self) -> None:
+        self.df[","] = self.df.apply(self._address_filter, axis=1)
+        # lambda row: choice(self.addresses[row["státní občanství"]]) if (len(str(row[","])) < 5) and
+        #             (row["státní občanství"] in self.addresses) else row[","]
 
     @staticmethod
     def _address_cleaner(address: str) -> str:
@@ -76,51 +101,56 @@ class DataCleaner:
             return address
 
         iso2, first_part, second_part = parts
-        if first_part.capitalize() == "Street 1" or first_part.capitalize() == second_part.capitalize():
+        if first_part.capitalize() in ["str", ".", "Street 1"] or first_part.capitalize() == second_part.capitalize():
             return f"{iso2}, {second_part}"
 
         return address
 
-    def address_modifier(self):
+    def address_cleaner(self) -> None:
         self.df[","] = self.df[","].apply(self._address_cleaner)
 
     def apply_changes(self) -> pd.DataFrame:
         self.remove_invalid_dob()
-        self.pass_no_filter()
+        self.remove_duplicates()
+        self.pass_filter()
         self.check_first_name()
         self.viza_validation()
         self.fill_rsn_of_stay()
-        self.address_filler()
+        self.address_filter()
+        self.address_cleaner()
         return self.df
+
+    def clean_table(self) -> None:
+        for row in self.ws.iter_rows(
+                min_row=2, max_row=self.ws.max_row, min_col=2, max_col=self.ws.max_column):
+            for cell in row:
+                cell.value = None
+
+    def write_dataframe(self) -> None:
+        for row_idx, row in enumerate(dataframe_to_rows(self.df, index=False, header=False), start=2):
+            for col_idx, col in enumerate(row, start=1):
+                value = None if isna(col) else col
+                self.ws.cell(row=row_idx, column=col_idx, value=value)
+
+    def remove_blank_rows(self) -> None:
+        last_row = self.ws.max_row
+        while last_row > 1:
+            if self.ws[f"B{last_row}"].value in (None, ""):
+                self.ws.delete_rows(last_row)
+            else:
+                break
+            last_row -= 1
+
+    def completion(self) -> None:
+        self.apply_changes()
+        self.clean_table()
+        self.write_dataframe()
+        self.remove_blank_rows()
+        self.wb.save(self.file_dir)
 
 
 csv_path = Path("data/visa_obligated.csv")
 json_path = Path("data/addresses_data.json")
 
-my_df = DataCleaner("Ubydata_19B.xls", "Seznam", csv_path, json_path)
-df_out = my_df.apply_changes()
-df_out.to_excel("draft/solution.xlsx", index=False)
-
-
-# TODO: 1) correctly return all columns data types? mostly string, or dates
-#       1a) Already done, since we will use openpyxl all datatypes
-#       and formatting will keep the same
-#       2) fix addresses with duplicate cities, and "Street 1"
-#       3) if iso2 index in address is not in my json, update it
-#       by adding new key and notify about this, so i would know to
-#       add new values to this keys
-#       4) remove duplicate guests by passport number and names
-#       pretty much 2 rows would be the same so maybe set()?
-#       5) len(pass) <= 5
-#       6) pass = "XXXXXX123"
-#       7) len(firstName) > 1 word
-
-# TODO: 1) изменить путь к файлу, попробовать реализовать на копии .xlsm
-#       2) реализовать функцию которая будет очищать клетки и
-#       записывать туда новые значения из датафрейма
-#       (from openpyxl.utils.dataframe import dataframe_to_rows)
-#       3) функция которая будет чистить снизу вверх оставшиеся пустые строки
-#       4) pyinstaller --onefile <name_of_py_file> создается dist папка, туда перекинуть папку data
-#       и папку где будет храниться Ubydata_19B
-#       5) всю папку целиком кинуть на рабочий ПК -> $$$
-
+my_DataCleaner = DataCleaner("Ubydata_19B_copy.xlsm", "Seznam", csv_path, json_path)
+my_DataCleaner.completion()
