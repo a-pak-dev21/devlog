@@ -1,0 +1,4 @@
+Lib
+../winlibs
+python311.zip
+import site

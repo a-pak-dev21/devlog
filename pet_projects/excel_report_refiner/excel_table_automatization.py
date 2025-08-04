@@ -25,7 +25,7 @@ class DataCleaner:
         self.df = pd.read_excel(self.file_dir, sheet_name=sheet_name)
         self.viza_obligated = self._load_viza_required(viza_path)
         self.addresses = self._load_addresses(addresses_path)
-        self.wb = load_workbook(self.file_dir)
+        self.wb = load_workbook(self.file_dir, keep_vba=True)
         self.ws = self.wb[sheet_name]
 
     # From this part, we will start to modify our table
