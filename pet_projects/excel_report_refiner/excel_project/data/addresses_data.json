@@ -10,17 +10,27 @@
   "DEU": [
     "DE, Berlin",
     "DE, Frankfurt",
-    "DE, Dresden"
+    "DE, Dresden",
+    "DE, Hamburg",
+    "DE, Stuttgart",
+    "DE, Leipzig",
+    "DE, Dortmund",
+    "DE, Bonn"
   ],
   "POL": [
     "PL, Warsaw",
     "PL, Krakow",
-    "PL, Katowice"
+    "PL, Katowice",
+    "PL, Lodz",
+    "PL, Wroclaw"
   ],
   "ESP": [
     "ES, Madrid",
     "ES, Valencia",
-    "ES, Zaragoza"
+    "ES, Zaragoza",
+    "ES, Seville",
+    "ES, Malaga",
+    "ES, Bilbao",
   ],
   "AUT": [
     "AT, Vienna",
@@ -38,7 +48,9 @@
     "US, Chicago",
     "US, Dallas",
     "US, Houston",
-    "US, Austin"
+    "US, Austin",
+    "US, Nashville",
+    "US, Detroit"
   ],
   "GBR": [
     "GB, Manchester",
@@ -48,7 +60,9 @@
   "CHN": [
     "CN, Beijing",
     "CN, Shanghai",
-    "CN, Harbin"
+    "CN, Harbin",
+    "CN, Anqing",
+    "CN, Bozhou"
   ],
   "JPN": [
     "JP, Tokyo",
@@ -208,5 +222,26 @@
   "LVA": [
     "LV, Riga",
     "LV, Jelgava"
+  ],
+  "GEO": [
+    "GE, Tbilisi",
+    "GE, Batumi"
+  ],
+  "MYS": [
+    "MY, Kuala Lumpur",
+    "MY, Johor Bahru",
+    "MY, Seberang Perai"
+  ],
+  "ARG": [
+    "AR, Buenos Aires",
+    "AR, Mendoza"
+  ],
+  "EST": [
+    "EE, Tallinn",
+    "EE, Narva"
+  ],
+  "VNM": [
+    "VN, Hanoi",
+    "VN, Ho Chi Minh"
   ]
 }

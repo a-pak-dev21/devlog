@@ -1,0 +1,6 @@
+city,country,region
+Prague,Czechia,EU
+London,UK,EU
+Berlin,Germany,EU
+Unknown City,,EU
+BadCity, ,EU

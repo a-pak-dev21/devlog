@@ -1,0 +1,9 @@
+user_id,date,city,exercise,body_part,weight_kg,reps,duration_min
+101,2025-08-01,Prague,Barbell Squat,legs,80,5,40
+101,2025-08-03,New York,Bench Press,chest,60,8,35
+102,2025-08-02,London,Deadlift,back,100,3,30
+103,2025-08-02,Berlin,Pull Ups,back,0,12,20
+101,2025-08-05,Prague,Running,cardio,0,0,25
+102,2025-06-05,London,Overhead Press,shoulders,40,6,25
+103,2025-08-07,Berlin,Leg Press,legs,120,8,30
+103,2025-10-12,Jamaika,Pull Ups,legs,1,11,11

@@ -1,0 +1,73 @@
+# -------------------------
+# PYTHON / DATA PROJECTS
+# -------------------------
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+.study/
+
+# Environment / secrets
+.env
+.env.*
+
+# Jupyter / notebooks
+.ipynb_checkpoints/
+*.ipynb_convert/
+
+# Excel / output files
+*.xlsx
+*.xls
+*.csv
+out/
+logs/
+samples/
+
+# Local databases / SQLite temp files
+*.db
+*.sqlite3
+
+# Coverage / testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+nosetests.xml
+
+# Reports
+*.log
+*.tmp
+*.bak
+
+# VSCode / IDE settings
+.vscode/
+.idea/
+*.code-workspace
+
+# System files
+.DS_Store
+Thumbs.db
+
+# -------------------------
+# SPECIFIC TO YOUR STACK
+# -------------------------
+
+# Compiled FastAPI / Pydantic caches
+*.json.__pydantic_cache__/
+
+# Pandas temporary files
+*.parquet
+*.feather
+
+# Excel automation project outputs
+excel_report_refiner/out/
+excel_report_refiner/logs/
+
+# Ignore test files
+tests/

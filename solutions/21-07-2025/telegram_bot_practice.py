@@ -25,6 +25,7 @@ class TelegramBotPractice:
         self.app.add_handler(CommandHandler("menu", self.menu))
         self.app.add_handler(CommandHandler("register", self.register))
         self.app.add_handler(CommandHandler("survey", self.survey))
+        self.app.add_handler(CommandHandler("quest", self.quest))
 
     @staticmethod
     async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -122,7 +123,7 @@ class TelegramBotPractice:
              InlineKeyboardButton("Back", callback_data="back")]
         ]
         markup = InlineKeyboardMarkup(keyboard)
-        await update.message.reply_text("What would you like to do?\n", reply_markup=markup)
+        await update.callback_query.message.reply_text("What would you like to do?\n", reply_markup=markup)
 
     @staticmethod
     async def register(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -141,6 +142,18 @@ class TelegramBotPractice:
         context.user_data["survey"] = {}
         await update.message.reply_text("Question 1: What's your favorite color?")
 
+    @staticmethod
+    async def quest(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        keyboard = [
+            [
+                InlineKeyboardButton("🏔️Mountains", callback_data="mountain_road"),
+                InlineKeyboardButton("🌲Forest", callback_data="forest_road"),
+                InlineKeyboardButton("🏘️Village", callback_data="village_road")
+            ]
+        ]
+        markup = InlineKeyboardMarkup(keyboard)
+        await update.message.reply_text("Fork road ahead, choose the path:\n", reply_markup=markup)
+
     async def handle_inline_button(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         query = update.callback_query
         await query.answer()
@@ -149,12 +162,14 @@ class TelegramBotPractice:
             await query.edit_message_text(f"You've chosen: Yes")
         elif answer == "no":
             await query.edit_message_text(f"You've chosen: No")
+
         elif answer == "role_mage" or answer == "role_warrior" or answer == "role_ranger":
             context.user_data["stats"] = {"HP": 100, "Mana": 50}
             role = answer.replace("role_","").capitalize()
             context.user_data["class"] = role
             await query.edit_message_text(f"You chose: {role}")
             await self.menu(update, context)
+
         elif answer == "attack":
             await query.edit_message_text("You attack the enemy!")
         elif answer == "check_stats":
@@ -163,6 +178,24 @@ class TelegramBotPractice:
         elif answer == "back":
             context.user_data["role"] = None
             await self.game(update, context)
+
+        elif answer.endswith("_road"):
+            context.user_data["route"] = [answer.replace("_road", "")]
+            keyboard = [
+                [
+                    InlineKeyboardButton("Left", callback_data="turn_left"),
+                    InlineKeyboardButton("Right", callback_data="turn_right")
+                ]
+            ]
+            markup = InlineKeyboardMarkup(keyboard)
+            await query.edit_message_text("Choose where to turn?\n", reply_markup=markup)
+
+        elif answer.startswith("turn_"):
+            context.user_data["route"].append(answer.replace("turn_", "path_to_"))
+            route = " -> ".join(elem.capitalize() for elem in context.user_data["route"])
+            context.user_data.pop("route")
+            #context.user_data["final_path"] = True
+            await query.edit_message_text(f"Your final route is {route}")
 
 
 my_token = "8049335645:AAHjB-HM0NsXc2p_HD3LA0qOz07TszjmTHI"
