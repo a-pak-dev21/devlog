@@ -12,6 +12,7 @@ class Solution:
             subsum += elem
             counter += 1
             prefixes[counter] = subsum
+            if prefixes[counter] - k 
         return prefixes.values()
 
             

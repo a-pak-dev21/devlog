@@ -10,7 +10,7 @@ import json
 from openpyxl import load_workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 from random import choice
-from pet_projects.excel_report_refiner.logs.loggers import countries_logger
+# from pet_projects.excel_report_refiner.logs.loggers import countries_logger
 
 
 class DataCleaner:
@@ -43,13 +43,13 @@ class DataCleaner:
             return json.load(f)
 
     def remove_invalid_dob(self) -> None:
-        if not isinstance(self.df["datum narození"].iloc[0], str):
-            self.df["datum narození"] = self.df["datum narození"].dt.strftime("%d.%m.%Y")
+        if not isinstance(self.df["datum narozeni"].iloc[0], str):
+            self.df["datum narozeni"] = self.df["datum narození"].dt.strftime("%d.%m.%Y")
 
-        self.df = self.df[self.df["datum narození"] != "00.00.0000"].copy()
+        self.df = self.df[self.df["datum narozeni"] != "00.00.0000"].copy()
 
     def remove_duplicates(self) -> None:
-        self.df = self.df.drop_duplicates(subset=["příjmení", "jméno", "číslo cestovního dokladu"])
+        self.df = self.df.drop_duplicates(subset=["prijmeni", "jmeno", "cislo cestovniho dokladu"])
 
     @staticmethod
     def _check_first_name(first_name: str) -> str:
@@ -57,32 +57,32 @@ class DataCleaner:
         return " ".join(split_name[:2]) if len(split_name) > 2 else first_name
 
     def check_first_name(self) -> None:
-        self.df["jméno"] = self.df["jméno"].apply(self._check_first_name)
-        blank_name = self.df[(self.df["jméno"].isna()) & (self.df["příjmení"].str.split(" ").str.len() >= 2)]
-        for idx, row in blank_name[["příjmení", "jméno"]].iterrows():
-            split_name = row["příjmení"].split(" ")
+        self.df["jmeno"] = self.df["jmeno"].apply(self._check_first_name)
+        blank_name = self.df[(self.df["jmeno"].isna()) & (self.df["prijmeni"].str.split(" ").str.len() >= 2)]
+        for idx, row in blank_name[["prijmeni", "jmeno"]].iterrows():
+            split_name = row["prijmeni"].split(" ")
             last_name, first_name = " ".join(split_name[:-1]), split_name[-1]
-            self.df.loc[idx, ["příjmení", "jméno"]] = last_name, first_name
-        self.df = self.df.dropna(subset=["jméno"])
+            self.df.loc[idx, ["prijmeni", "jmeno"]] = last_name, first_name
+        self.df = self.df.dropna(subset=["jmeno"])
 
     def viza_validation(self) -> None:
-        self.df = self.df[(~self.df["státní občanství"].isin(self.viza_obligated))
-                          | ((self.df["státní občanství"].isin(self.viza_obligated)) & (self.df["číslo víza"].notna()))]
-        self.df["číslo víza"] = self.df["číslo víza"].fillna("")
+        self.df = self.df[(~self.df["statni obcanstvi"].isin(self.viza_obligated))
+                          | ((self.df["statni obcanstvi"].isin(self.viza_obligated)) & (self.df["cislo viza"].notna()))]
+        self.df["cislo viza"] = self.df["cislo viza"].fillna("")
 
     def pass_filter(self) -> None:
-        self.df = self.df.dropna(subset=["číslo cestovního dokladu"])
-        self.df = self.df[self.df["číslo cestovního dokladu"].str.len() > 5]
-        self.df = self.df[~self.df["číslo cestovního dokladu"].str.startswith("XXXX")]
+        self.df = self.df.dropna(subset=["cislo cestovniho dokladu"])
+        self.df = self.df[self.df["cislo cestovniho dokladu"].str.len() > 5]
+        self.df = self.df[~self.df["cislo cestovniho dokladu"].str.startswith("XXXX")]
 
     def fill_rsn_of_stay(self) -> None:
-        self.df["Unnamed: 13"] = self.df["Unnamed: 13"].fillna("10")
+        self.df["Unnamed: 10"] = self.df["Unnamed: 10"].fillna("10")
 
     def _address_filter(self, row: pd.Series) -> str | None:
         address = row[","]
-        nationality = row["státní občanství"]
+        nationality = row["statni obcanstvi"]
         if not isinstance(address, str) or len(address) < 5:
-            if row["státní občanství"] in self.addresses:
+            if row["statni obcanstvi"] in self.addresses:
                 return choice(self.addresses[nationality])
             else:
                 countries_logger.info(f"The Country with ISO3: {nationality} is not in list of countries")
@@ -152,5 +152,5 @@ class DataCleaner:
 csv_path = Path("data/visa_obligated.csv")
 json_path = Path("data/addresses_data.json")
 
-my_DataCleaner = DataCleaner("Ubydata_19B_copy.xlsm", "Seznam", csv_path, json_path)
+my_DataCleaner = DataCleaner("excel_practice_sheet.xlsx", "Sheet1", csv_path, json_path)
 my_DataCleaner.completion()
