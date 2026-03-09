@@ -70,4 +70,4 @@ excel_report_refiner/out/
 excel_report_refiner/logs/
 
 # Ignore test files
-tests/
+tests/.DS_Store
