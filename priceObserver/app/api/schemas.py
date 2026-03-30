@@ -30,4 +30,4 @@ class InputPairs(BaseModel):
 
 class PostSnapshotOut(BaseModel):
     snapshot_id: int
-    rows_count: int
+    rows_inserted: int

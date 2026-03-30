@@ -1,0 +1,62 @@
+name: price-observer
+
+services:
+  app:
+    image: price-observer:dev
+    ports:
+      - "${APP_PORT}:8000"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - LOG_LEVEL=${LOG_LEVEL}
+    depends_on:
+      db:
+        condition: service_healthy
+    # develop:
+    #   watch:
+    #     - action: sync+restart
+    #       path: .
+    #       target: /app
+    #     - action: rebuild
+    #       path: requirements.txt
+
+
+  db:
+    image: postgres:latest
+    ports:
+      - "5431:5432"
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - psql_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  init-db:
+    image: price-observer:dev
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - LOG_LEVEL=${LOG_LEVEL}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      python -c "from app.db.db import make_engine, create_tables;
+      create_tables(make_engine())"
+
+volumes:
+  psql_data:

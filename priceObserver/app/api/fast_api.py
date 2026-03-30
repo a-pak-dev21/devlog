@@ -75,7 +75,7 @@ def get_snapshot_spreads(snapshot_id: int):
 def post_new_snapshot(pairs: InputPairs):
     result = run_and_save_snapshot(pairs.pairs)
     if result:
-        logger.info(f"New snapshot with id: {result['snapshot_id']} saved, {result['rows_count']} records has been added")
+        logger.info(f"New snapshot with id: {result['snapshot_id']} saved, {result['rows_inserted']} records has been added")
     else:
         logger.warning("0 rows has been inserted")
     return result
