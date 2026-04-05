@@ -9,7 +9,7 @@ from app.settings import BASE_DIR
 import json
 from sqlalchemy import Engine, select, literal
 from logging import getLogger
-from app.db.db import make_engine
+from app.db.session import get_engine
 from app.db.models import pairs_table, exchanges_table, prices_table, snapshots_table, errors_table
 
 logger = getLogger(__name__)
@@ -255,7 +255,7 @@ def get_pair_stats(df: pd.DataFrame | None, base: str, quote: str,
 
 if __name__ == "__main__":
     #load_from_csv()
-    engine = make_engine()
+    engine = get_engine()
     my_df = load_from_db(engine)
     print(my_df)
     since = pd.Timestamp("2026-01-05 23:41:24")

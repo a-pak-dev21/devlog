@@ -1,8 +1,8 @@
 from fastapi.testclient import TestClient
-from app.api.fast_api import app_creator
+from app.api.fast_api import app
 from app.api.schemas import InputPairs
 
-client = TestClient(app_creator())
+client = TestClient(app)
 
 def test_db_health():
     response = client.get("/health")
@@ -82,15 +82,15 @@ def test_spreads():
 
 def test_spreads_nonexisting_id():
     response = client.get("/spreads/99999")
-    assert response.status_code == 200
-    assert response.json() == []
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Snapshot with this id isn't existing"}
 
 def test_posting_snapshot():
     payload = InputPairs(pairs=[
         ("BTC", "USDT"), ("BNB","USDT"), ("ETH","USDT")
         ])
     response = client.post("/post-snapshot", json=payload.model_dump())
-    assert response.status_code == 200
+    assert response.status_code == 201
     data = response.json()
     assert isinstance(data, dict)
 

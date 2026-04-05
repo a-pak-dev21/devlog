@@ -2,17 +2,21 @@
 # в analysis.py уже реализована только история по паре и то как вспомогательная функция так-что можно практически все
 
 from app.db.models import pairs_table, exchanges_table, prices_table, snapshots_table, errors_table
-from app.db.db import make_engine
-from sqlalchemy import select, Select, func, Sequence, RowMapping
+from sqlalchemy import select, Select, func, Connection
 from datetime import datetime
 from logging import getLogger
 from typing import Literal
-import json
-from decimal import Decimal
+from app.api.schemas import PaginationDep
+
 
 logger = getLogger(__name__)
 
-engine = make_engine()
+pagination_map: dict = {
+    "time": snapshots_table.c.snapshot_time.label("time"),
+    "exchange": exchanges_table.c.name.label("exchange"),
+    "price": prices_table.c.price,
+    "pair": func.concat(pairs_table.c.base,"-",pairs_table.c.quote).label("pair")
+}
 
 def all_columns() -> tuple:
     return (
@@ -25,14 +29,14 @@ def all_columns() -> tuple:
         )
 
 
-def launcher(stmt: Select, mode: Literal["mappings", "scalars", "rows"] = "mappings"):
-    with engine.connect() as conn:
-        if mode == "mappings":
-            return conn.execute(stmt).mappings().all()
-        elif mode == "scalars":
-            return conn.execute(stmt).scalars().all()
-        elif mode == "rows":
-            return conn.execute(stmt).all()
+def launcher(conn: Connection, stmt: Select, mode: Literal["mappings", "scalars", "rows"] = "mappings"):
+    
+    if mode == "mappings":
+        return conn.execute(stmt).mappings().all()
+    elif mode == "scalars":
+        return conn.execute(stmt).scalars().all()
+    elif mode == "rows":
+        return conn.execute(stmt).all()
 
 
 def _join_builder():
@@ -72,39 +76,66 @@ def _apply_filters(stmt: Select, start: datetime | None = None, end: datetime | 
     
     return stmt
 
-def get_all_pairs():
+
+def _pagination_filter(stmt: Select,
+                       order_by: str,
+                       sort_dir: str,
+                       limit: int,
+                       offset: int                       
+                       ):
+    if sort_dir == "desc":
+        return stmt.order_by(
+            pagination_map[order_by].desc()
+            ).limit(limit).offset(offset)
+    elif sort_dir == "asc":
+        return stmt.order_by(
+            pagination_map[order_by].asc()
+            ).limit(limit).offset(offset)
+    
+    
+
+def get_all_pairs(conn: Connection,
+                  order_by: str,
+                  sort_dir: str,
+                  limit: int,
+                  offset: int
+                  ):
     stmt = select(pairs_table.c.base,
                   pairs_table.c.quote,
                   func.concat(pairs_table.c.base, "-", pairs_table.c.quote).label("pair")
                   ).select_from(pairs_table)
     
-    return launcher(stmt)
+    stmt = _pagination_filter(stmt, order_by, sort_dir,
+                              limit, offset)
+    
+    if stmt is not None:
+        return launcher(conn, stmt)
 
 
-def get_all_exchanges():
+def get_all_exchanges(conn: Connection):
     stmt = select(exchanges_table.c.name.label("exchange")).select_from(exchanges_table)
 
-    return launcher(stmt, mode="scalars")
+    return launcher(conn, stmt, mode="scalars")
 
 
-def db_health_check():
+def db_health_check(conn: Connection):
     try:
-        launcher(select(1))
+        launcher(conn, select(1))
         return True
     except:
         return False
 
 
-def get_latest_snapshot():
+def get_latest_snapshot(conn: Connection):
     subquery = select(func.max(snapshots_table.c.id)).select_from(snapshots_table).scalar_subquery()
     stmt = select(
         *all_columns()
     ).select_from(_join_builder()).where(snapshots_table.c.id == subquery)
         
-    return launcher(stmt)
+    return launcher(conn, stmt)
 
 
-def get_all_prices(base: str | None = None, quote: str | None = None, exchange: str | None = None,
+def get_all_prices(conn: Connection, base: str | None = None, quote: str | None = None, exchange: str | None = None,
                    start: datetime | None = None, end: datetime | None = None):
     
     stmt = select(prices_table.c.price).select_from(_join_builder())
@@ -113,10 +144,10 @@ def get_all_prices(base: str | None = None, quote: str | None = None, exchange: 
                    base=base, quote=quote,
                    exchange=exchange)
     
-    return launcher(stmt, "scalars")
+    return launcher(conn, stmt, "scalars")
 
 
-def get_snapshot(snapshot_id: int | None = None, snapshot_time: datetime | None = None):
+def get_snapshot(conn: Connection, snapshot_id: int | None = None, snapshot_time: datetime | None = None):
 
     if snapshot_id is not None and snapshot_time is not None:
         logger.error("You have to get snapshot either by id or by time not both together")
@@ -133,10 +164,15 @@ def get_snapshot(snapshot_id: int | None = None, snapshot_time: datetime | None 
         logger.error("Either snapshot_id or snapshot_time have to be initialized")
         return None
     
-    return launcher(stmt)
+    return launcher(conn, stmt)
 
 
-def get_pair_timeseries(base: str, quote: str,
+def get_pair_timeseries(conn: Connection,
+                        order_by: str,
+                        sort_dir: str,
+                        limit: int,
+                        offset: int,
+                        base: str, quote: str,
                         start: datetime | None = None, end: datetime | None = None,
                         exchange: str | None = None):
     stmt = select(
@@ -145,10 +181,13 @@ def get_pair_timeseries(base: str, quote: str,
 
     stmt = _apply_filters(stmt, base=base, quote=quote, start=start, end=end, exchange=exchange)
 
-    return launcher(stmt)
+    stmt = _pagination_filter(stmt, order_by, sort_dir, limit, offset)
+
+    if stmt is not None:
+        return launcher(conn, stmt)
 
 
-def get_snapshot_spreads(snapshot_id: int):
+def get_snapshot_spreads(conn: Connection, snapshot_id: int):
     # должна для каждого снепшота возввращать минимальную цену, максимальную цену, спред цен(макс - мин), 
     # спред в проценте, best_buy_on, best_sell_on(name of stock exchange)
     ranked = (select(
@@ -178,42 +217,13 @@ def get_snapshot_spreads(snapshot_id: int):
         func.max(ranked.c.exchange).filter(ranked.c.rn_max == 1).label("best_sell_on")
     ).select_from(ranked).group_by(ranked.c.time, ranked.c.pair)
 
-    return launcher(stmt)
+    return launcher(conn, stmt)
 
 
-def get_errors(mode: Literal["all", "missing_fields"] = 'all'):
+def get_errors(conn: Connection, mode: Literal["all", "missing_fields"] = 'all'):
     stmt = select(errors_table)
     if mode == "missing_fields":
         stmt = stmt.where(errors_table.c.source == "validation")
     
-    return launcher(stmt)
-
-
-if __name__ == '__main__':
-
-    # test1 = get_latest_snapshot()
-    # print(test1)
-    
-    # test2 = get_all_prices(base="btc", quote="usdt", exchange="Binance.com",
-    #                        start=datetime(2026,2,8,0,0,0), end=datetime(2026,2,14,0,0,0))
-    # print(test2)
-
-    # test3 = get_snapshot(snapshot_time=datetime(2026,2,15,20,6,59))
-    # for row in test3:
-    #     print(row)
-
-    # test4 = get_pair_timeseries("btc", "usdt", exchange="Coinbase.com")
-    # print(len(test4))
-    # for row in test4:
-    #     print(row, "\n")
-
-    test5 = get_snapshot_spreads(3)
-    test_list = []
-    for row in test5:
-        d = dict(row)
-        d["time"] = d["time"].strftime("%Y-%m-%d %H:%M:%S")
-        for k,v in d.items():
-            if isinstance(v, Decimal):
-                d[k] = float(v)
-        print(json.dumps(d, indent=2))
+    return launcher(conn, stmt)
 
