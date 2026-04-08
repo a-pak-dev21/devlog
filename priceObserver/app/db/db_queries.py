@@ -6,16 +6,21 @@ from sqlalchemy import select, Select, func, Connection
 from datetime import datetime
 from logging import getLogger
 from typing import Literal
-from app.api.schemas import PaginationDep
+from app.api.dto import PaginationDTO, PairFiltersDTO
 
 
 logger = getLogger(__name__)
 
 pagination_map: dict = {
-    "time": snapshots_table.c.snapshot_time.label("time"),
-    "exchange": exchanges_table.c.name.label("exchange"),
+    "time": snapshots_table.c.snapshot_time,
+    "exchange": exchanges_table.c.name,
     "price": prices_table.c.price,
-    "pair": func.concat(pairs_table.c.base,"-",pairs_table.c.quote).label("pair")
+    "pair": func.concat(pairs_table.c.base,"-",pairs_table.c.quote)
+}
+
+sort_dir_map: dict = {
+    "desc": lambda expression: expression.desc(),
+    "asc": lambda expression: expression.asc()
 }
 
 def all_columns() -> tuple:
@@ -52,68 +57,54 @@ def _join_builder():
     return stmt
 
 
-def _apply_filters(stmt: Select, start: datetime | None = None, end: datetime | None = None,
-                  base: str | None = None, quote: str | None = None,
-                  exchange: str | None = None):
+def _apply_filters(stmt: Select,
+                   filters: PairFiltersDTO):
     
-    if start and end:
-        stmt = stmt.where(snapshots_table.c.snapshot_time >= start,
-                          snapshots_table.c.snapshot_time <= end)
-    elif start:
-        stmt = stmt.where(snapshots_table.c.snapshot_time >= start)
-    elif end:
-        stmt = stmt.where(snapshots_table.c.snapshot_time <= end)
+    if filters.start and filters.end:
+        stmt = stmt.where(snapshots_table.c.snapshot_time >= filters.start,
+                          snapshots_table.c.snapshot_time <= filters.end)
+    elif filters.start:
+        stmt = stmt.where(snapshots_table.c.snapshot_time >= filters.start)
+    elif filters.end:
+        stmt = stmt.where(snapshots_table.c.snapshot_time <= filters.end)
 
-    if base and quote:
-        base = base.upper().strip()
-        quote = quote.upper().strip()
+    if filters.base and filters.quote:
+        base = filters.base.upper().strip()
+        quote = filters.quote.upper().strip()
         stmt = stmt.where(pairs_table.c.base == base,
                           pairs_table.c.quote == quote)
         
-    if exchange:
-        exchange = exchange.lower().strip()
+    if filters.exchange:
+        exchange = filters.exchange.lower().strip()
         stmt = stmt.where(exchanges_table.c.name == exchange)
     
     return stmt
 
 
 def _pagination_filter(stmt: Select,
-                       order_by: str,
-                       sort_dir: str,
-                       limit: int,
-                       offset: int                       
+                       pagination: PaginationDTO                       
                        ):
-    if sort_dir == "desc":
-        return stmt.order_by(
-            pagination_map[order_by].desc()
-            ).limit(limit).offset(offset)
-    elif sort_dir == "asc":
-        return stmt.order_by(
-            pagination_map[order_by].asc()
-            ).limit(limit).offset(offset)
     
+    col_to_order = pagination_map[pagination.order_by]
+
+    stmt = stmt.order_by(
+        sort_dir_map[pagination.sort_dir](col_to_order)
+        ).limit(pagination.limit).offset(pagination.offset)
+
+    return stmt
     
 
-def get_all_pairs(conn: Connection,
-                  order_by: str,
-                  sort_dir: str,
-                  limit: int,
-                  offset: int
-                  ):
+def get_all_pairs(conn: Connection, limit: int, offset: int):
     stmt = select(pairs_table.c.base,
                   pairs_table.c.quote,
                   func.concat(pairs_table.c.base, "-", pairs_table.c.quote).label("pair")
-                  ).select_from(pairs_table)
+                  ).select_from(pairs_table).limit(limit).offset(offset)
     
-    stmt = _pagination_filter(stmt, order_by, sort_dir,
-                              limit, offset)
-    
-    if stmt is not None:
-        return launcher(conn, stmt)
+    return launcher(conn, stmt)
 
 
 def get_all_exchanges(conn: Connection):
-    stmt = select(exchanges_table.c.name.label("exchange")).select_from(exchanges_table)
+    stmt = select(exchanges_table.c.name.label("name")).select_from(exchanges_table)
 
     return launcher(conn, stmt, mode="scalars")
 
@@ -135,14 +126,11 @@ def get_latest_snapshot(conn: Connection):
     return launcher(conn, stmt)
 
 
-def get_all_prices(conn: Connection, base: str | None = None, quote: str | None = None, exchange: str | None = None,
-                   start: datetime | None = None, end: datetime | None = None):
+def get_all_prices(conn: Connection, filters: PairFiltersDTO):
     
     stmt = select(prices_table.c.price).select_from(_join_builder())
    
-    stmt = _apply_filters(stmt, start=start, end=end,
-                   base=base, quote=quote,
-                   exchange=exchange)
+    stmt = _apply_filters(stmt, filters)
     
     return launcher(conn, stmt, "scalars")
 
@@ -168,23 +156,17 @@ def get_snapshot(conn: Connection, snapshot_id: int | None = None, snapshot_time
 
 
 def get_pair_timeseries(conn: Connection,
-                        order_by: str,
-                        sort_dir: str,
-                        limit: int,
-                        offset: int,
-                        base: str, quote: str,
-                        start: datetime | None = None, end: datetime | None = None,
-                        exchange: str | None = None):
+                        pagination: PaginationDTO,
+                        filters: PairFiltersDTO):
     stmt = select(
         *all_columns()
     ).select_from(_join_builder())
 
-    stmt = _apply_filters(stmt, base=base, quote=quote, start=start, end=end, exchange=exchange)
+    stmt = _apply_filters(stmt, filters)
 
-    stmt = _pagination_filter(stmt, order_by, sort_dir, limit, offset)
+    stmt = _pagination_filter(stmt, pagination)
 
-    if stmt is not None:
-        return launcher(conn, stmt)
+    return launcher(conn, stmt)
 
 
 def get_snapshot_spreads(conn: Connection, snapshot_id: int):

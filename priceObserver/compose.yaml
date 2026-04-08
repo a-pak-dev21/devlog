@@ -15,13 +15,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    # develop:
-    #   watch:
-    #     - action: sync+restart
-    #       path: .
-    #       target: /app
-    #     - action: rebuild
-    #       path: requirements.txt
+    develop:
+      watch:
+        - action: sync+restart
+          path: .
+          target: /app
+        - action: rebuild
+          path: requirements.txt
 
 
   db:
@@ -42,8 +42,11 @@ services:
       retries: 5
       start_period: 10s
 
-  init-db:
+
+  migrate:
     image: price-observer:dev
+    restart: no
+    working_dir: /app
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -54,9 +57,26 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: >
-      python -c "from app.db.db import make_engine, create_tables;
-      create_tables(make_engine())"
+    command: ["alembic", "upgrade", "head"]
+      
 
 volumes:
-  psql_data:
+  psql_data:      
+
+
+  # init-db:
+  #   image: price-observer:dev
+  #   environment:
+  #     - POSTGRES_USER=${POSTGRES_USER}
+  #     - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  #     - POSTGRES_DB=${POSTGRES_DB}
+  #     - POSTGRES_HOST=db
+  #     - POSTGRES_PORT=5432
+  #     - LOG_LEVEL=${LOG_LEVEL}
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   command: >
+  #     python -c "from app.db.db import make_engine, create_tables;
+  #     create_tables(make_engine())"
+

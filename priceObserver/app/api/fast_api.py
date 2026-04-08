@@ -18,7 +18,5 @@ app.include_router(spreads.router)
 def root():
     return {"message": "Root directory for price observer"}
 
-#TODO: добавить метаданные через Path, Query, Body во все ендпоинты 
-# добавить все Dependencies
-# limit + offset, для
+
 

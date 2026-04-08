@@ -1,10 +1,10 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-from app.api.schemas import Snapshot, PairOut, PaginationDep
-from datetime import datetime
+from fastapi import APIRouter, HTTPException, status, Depends, Query
+from app.api.schemas import Snapshot, PairOut, PaginationDep, PairHistoryFilterDep
 import app.db.db_queries as dbq
 from typing import Annotated
 from sqlalchemy import Connection
 from app.db.session import get_conn
+from app.api.dto import PaginationDTO, PairFiltersDTO
 
 
 router = APIRouter(tags=["pairs"])
@@ -12,33 +12,19 @@ router = APIRouter(tags=["pairs"])
 
 @router.get("/pairs", response_model=list[PairOut])
 def get_pairs(conn: Annotated[Connection, Depends(get_conn)],
-              pagination_params: Annotated[PaginationDep, Depends(PaginationDep)]):
-    return dbq.get_all_pairs(conn,
-                             pagination_params.order_by,
-                             pagination_params.sort_dir,
-                             pagination_params.limit,
-                             pagination_params.offset
-                             )
+              limit: int = Query(default=5, gt=0, description="Amount of elements on page"),
+              offset: int = Query(default=0, ge=0, description="Offset n elements")):
+    
+    return dbq.get_all_pairs(conn, limit, offset)
 
 
 @router.get("/pairs/history", response_model= list[Snapshot])
 def get_pair_history(conn: Annotated[Connection, Depends(get_conn)],
                      pagination_params: Annotated[PaginationDep, Depends(PaginationDep)],
-                     base: str, quote: str,
-                     start: datetime | None = None, end: datetime | None = None,
-                     exchange: str | None = None
+                     filter_params: Annotated[PairHistoryFilterDep, Depends(PairHistoryFilterDep)]
                      ):
     
-    if base == quote:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="The base and quote cannot be same")
+    pagination = PaginationDTO(**pagination_params.model_dump())
+    filters = PairFiltersDTO(**filter_params.model_dump())
 
-    if start is not None and end is not None:
-        if start > end:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="starttime cannot be greater then endtime")
-
-    return dbq.get_pair_timeseries(conn,
-                                pagination_params.order_by,
-                                pagination_params.sort_dir,
-                                pagination_params.limit,
-                                pagination_params.offset,
-                                base, quote, start, end, exchange)
+    return dbq.get_pair_timeseries(conn, pagination, filters)

@@ -8,6 +8,6 @@ from sqlalchemy import Connection
 
 router = APIRouter(tags=["exchanges"])
 
-@router.get("/exchanges", response_model=list[ExchangeOut])
+@router.get("/exchanges")
 def get_exchanges(conn: Annotated[Connection, Depends(get_conn)]):
     return dbq.get_all_exchanges(conn)
