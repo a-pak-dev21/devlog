@@ -15,7 +15,8 @@ from typing import Any
 from datetime import datetime, timezone
 from app.settings import BASE_DIR
 from app.logging_config import root_logger_config
-
+from passlib.context import CryptContext
+from pwdlib import PasswordHash
 
 # BASE_DIR = Path(__file__).resolve().parent
 
@@ -235,6 +236,16 @@ if __name__ == '__main__':
     compare_test_3 = ["eth-usdt","btcusdt"]
     compare_test_4 = ["eth-btc-usd","bnb"]
 
+
+    # pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+    # s = "password123"
+    
+    # print(pwd_context.hash(s))
+
+    pwd_hash = PasswordHash.recommended()
+    print(pwd_hash.verify("password123", "$argon2id$v=19$m=65536,t=3,p=4$ZEgU3ss/4dR9EvTMBN43oQ$muLt/uSRYT8beUNPiIuvlLQcsm2BDjq5M6aLGZFDUZM"))
+    
 
     
 
