@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     admin_password_hash: SecretStr
     jwt_secret_key: str
     jwt_algorithm: str
-    access_token_expire_minutes: int | None
+    access_token_expire_minutes: int
 
 
     model_config = SettingsConfigDict(

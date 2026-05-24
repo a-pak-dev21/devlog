@@ -1,14 +1,27 @@
 from pydantic import BaseModel, Field, field_validator, model_validator
 from datetime import datetime
 from typing import Literal
+from fastapi import Query
 
 
 class PairHistoryFilterDep(BaseModel):
-    base: str = Field(min_length=1, max_length=10)
-    quote: str = Field(min_length=1, max_length=10)
-    start: datetime | None = None
-    end: datetime | None = None
-    exchange: str| None = None
+    base: str = Query(min_length=1, max_length=10)
+    quote: str = Query(min_length=1, max_length=10)
+    start: datetime | None = Query(
+        default=None,
+        description="Start datetime filter in ISO format",
+        examples=["2026-01-01T07:30:00"]
+    )
+    end: datetime | None = Query(
+        default=None,
+        description="End datetime filter in ISO format",
+        examples=["2026-12-21T10:30:00"]
+    )
+    exchange: str| None = Query(
+        default=None,
+        description="EXchange name filter",
+        examples=["binance.com"]
+    )
       
 
     @field_validator("base", "quote", mode="before")
@@ -20,9 +33,14 @@ class PairHistoryFilterDep(BaseModel):
     
     @field_validator("exchange", mode="before")
     @classmethod
-    def exchange_check(cls, v) -> str:
+    def exchange_check(cls, v) -> str | None:
+
+        if v is None:
+            return None
+        
         if not isinstance(v, str):
             raise ValueError("Exchange name instance must be a string")
+        
         return v.lower().strip()
 
     @model_validator(mode="after")
@@ -39,18 +57,18 @@ class PairHistoryFilterDep(BaseModel):
     
 
 class PaginationDep(BaseModel):
-    order_by: Literal["time", "exchange", "price", "pair"] = Field(
+    order_by: Literal["time", "exchange", "price", "pair"] = Query(
         default="time",
         description="Column to sort by",
         examples=["time"]
         )
-    sort_dir: Literal["desc", "asc"] = Field(
+    sort_dir: Literal["desc", "asc"] = Query(
         default="desc",
         description="In which direction sort elements",
         examples=["desc"]
         )
-    limit: int = Field(default=5, gt=0, le=100, description="Amount of elements on a page")
-    offset: int = Field(default=0, ge=0, description="Index to move elements on")
+    limit: int = Query(default=5, gt=0, le=100, description="Amount of elements on a page")
+    offset: int = Query(default=0, ge=0, description="Index to move elements on")
 
 
 class ExchangeOut(BaseModel):
@@ -85,3 +103,8 @@ class InputPairs(BaseModel):
 class PostSnapshotOut(BaseModel):
     snapshot_id: int
     rows_inserted: int
+
+class PayloadOut(BaseModel):
+    sub: str
+    role: str
+    exp: datetime

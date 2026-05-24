@@ -57,9 +57,7 @@ def _get_snapshot_id(conn: Connection, timestamp: datetime) -> int:
 
 def _insert_prices(conn: Connection, rows_with_ids: list[dict]) -> None:
     stmt = pg_insert(prices_table).values(rows_with_ids).on_conflict_do_nothing(constraint="uq_price_combination")
-
-    res = conn.execute(stmt).rowcount
-    logger.info("%s rows with prices has been inserted", res)
+    conn.execute(stmt)
 
     
 def _insert_errors(conn: Connection, error_type: str, message: str,

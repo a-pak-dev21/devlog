@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Depends, Query
+from fastapi import APIRouter, Depends, Query
 from app.api.schemas import Snapshot, PairOut, PaginationDep, PairHistoryFilterDep
 import app.db.db_queries as dbq
 from typing import Annotated

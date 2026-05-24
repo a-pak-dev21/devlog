@@ -19,5 +19,3 @@ app.include_router(auth.router)
 def root():
     return {"message": "Root directory for price observer"}
 
-
-

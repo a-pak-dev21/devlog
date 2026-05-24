@@ -1,0 +1,747 @@
+{
+  "info": {
+    "_postman_id": "a7c55d2c-951b-4f15-a9c5-7ede31c10d63",
+    "name": "Price Observer API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "49200315",
+    "_collection_link": "https://go.postman.co/collection/49200315-a7c55d2c-951b-4f15-a9c5-7ede31c10d63?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Workflow test",
+      "item": [
+        {
+          "name": "API Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function (){",
+                  "    pm.response.to.have.status(200);",
+                  "})"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "",
+                "value": " ",
+                "type": "text",
+                "disabled": true
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DB Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function (){",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  "",
+                  "pm.test(\"Database is reachable\", function (){",
+                  "    pm.expect(pm.response.json().status).to.eql(\"ok\");",
+                  "})"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ready",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ready"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Status code is 200\", function (){",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  "",
+                  "pm.test(\"Token is received\", function (){",
+                  "    pm.expect(jsonData).to.have.property(\"access_token\");",
+                  "})",
+                  "",
+                  "pm.test(\"Token type is Bearer\", function (){",
+                  "    pm.expect(jsonData[\"token_type\"]).to.eql(\"bearer\");",
+                  "})",
+                  "",
+                  "pm.collectionVariables.set(\"accessToken\", jsonData[\"access_token\"])",
+                  "",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{username}}",
+                  "type": "text",
+                  "uuid": "d494eed2-c5a6-4204-ad5a-d94561846f14"
+                },
+                {
+                  "key": "password",
+                  "value": "{{password}}",
+                  "type": "text",
+                  "uuid": "a0ee3f10-774e-47de-8940-24cdc332d9a4"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Post snapshot",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "})",
+                  "",
+                  "pm.test(\"Response is JSON object\", function () {",
+                  "    pm.response.to.be.json;",
+                  "})",
+                  "",
+                  "pm.test(\"Response include snapshot id\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"snapshot_id\")",
+                  "})",
+                  "",
+                  "const snapshotId = pm.response.json()[\"snapshot_id\"]",
+                  "",
+                  "pm.collectionVariables.set(\"lastSnapshotId\", snapshotId)",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"pairs\": [\n        [\"Btc\", \"USDT\"],\n        [\"BnB\", \"USDT\"],\n        [\"Eth\", \"USDT\"]\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/post-snapshot",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "post-snapshot"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get last snapshot",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  "",
+                  "pm.test(\"Response is JSON\", function () {",
+                  "    pm.response.to.be.json;",
+                  "})",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/last-snapshot",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "last-snapshot"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get spreads of snapshot",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  "",
+                  "pm.test(\"Response is list object\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\");",
+                  "})"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/spreads/:snapshot_id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "spreads",
+                ":snapshot_id"
+              ],
+              "variable": [
+                {
+                  "key": "snapshot_id",
+                  "value": "{{lastSnapshotId}}",
+                  "description": "ID of snapshot, which spreads we want to receive"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Current workflow should:\n\n1. Check the status of the API\n    \n2. Check status of DB\n    \n3. Authorize with environment variables (currently settled as admin)\n    \n4. After authorizing, receive token and save it as collection variable\n    \n5. By using received token, post new snapshot to a DB, save posted snapshot id\n    \n6. Return last snapshot\n    \n7. Return spreads of snapshot, by using posted snapshot id as reference"
+    },
+    {
+      "name": "Invalid requests",
+      "item": [
+        {
+          "name": "Post snapshot - No token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Request without token returns 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "    pm.expect(pm.response.json()[\"detail\"]).to.eql(\"Not authenticated\")",
+                  "})",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"pairs\": [\n        [\"Btc\", \"USDT\"],\n        [\"BnB\", \"USDT\"],\n        [\"Eth\", \"USDT\"]\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/post-snapshot",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "post-snapshot"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Post snapshot - Invalid token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Request with invalid token returns 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "    pm.expect(pm.response.json()[\"detail\"]).to.eql(\"Invalid authentication token\")",
+                  "})"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiIsImV4cCI6MTc3OTUyMjE3M30.C_SuoSIxYBMT18QG2zxIw_ehSvuJMFFFAJUH7nuVAzlU",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"pairs\": [\n        [\"Btc\", \"USDT\"],\n        [\"BnB\", \"USDT\"],\n        [\"Eth\", \"USDT\"]\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/post-snapshot",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "post-snapshot"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login - Invalid User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Invalid username or password returns 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "    pm.expect(pm.response.json()[\"detail\"]).to.eql(\"Incorrect username or password\")",
+                  "})",
+                  "",
+                  "",
+                  "",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "justUser",
+                  "type": "text",
+                  "uuid": "d494eed2-c5a6-4204-ad5a-d94561846f14"
+                },
+                {
+                  "key": "password",
+                  "value": "{{password}}",
+                  "type": "text",
+                  "uuid": "a0ee3f10-774e-47de-8940-24cdc332d9a4"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Invalid tests made to check correct validation of edge cases"
+    },
+    {
+      "name": "Data",
+      "item": [
+        {
+          "name": "Get Exchanges",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/exchanges",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "exchanges"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get all pairs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pairs?limit=5&offset=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pairs"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5",
+                  "description": "amount of elements on list",
+                  "type": "text"
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "offset to n elements",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get snapshot history by pair",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "})",
+                  "",
+                  "pm.test(\"Response is list object\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an(\"array\")",
+                  "})"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pairs/history?base=btc&quote=usdt&limit=4&offset=0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pairs",
+                "history"
+              ],
+              "query": [
+                {
+                  "key": "base",
+                  "value": "btc",
+                  "description": "base of pair which history we are requiring"
+                },
+                {
+                  "key": "quote",
+                  "value": "usdt",
+                  "description": "quote of pair which history we are requiring"
+                },
+                {
+                  "key": "limit",
+                  "value": "4",
+                  "description": "limit of elements on page; default=5"
+                },
+                {
+                  "key": "offset",
+                  "value": "0",
+                  "description": "number of elements to skip before; default=0"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "name": "Get snapshot history by pair - by exchange",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/pairs/history?base=btc&quote=usdt&exchange=binance.com",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pairs",
+                    "history"
+                  ],
+                  "query": [
+                    {
+                      "key": "base",
+                      "value": "btc"
+                    },
+                    {
+                      "key": "quote",
+                      "value": "usdt"
+                    },
+                    {
+                      "key": "exchange",
+                      "value": "binance.com",
+                      "description": "name of exchange by which we can filter result"
+                    }
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            },
+            {
+              "name": "Get snapshot history by pair - by time",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/pairs/history?base=btc&quote=usdt&start=2026-05-09&end=2026-05-12",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pairs",
+                    "history"
+                  ],
+                  "query": [
+                    {
+                      "key": "base",
+                      "value": "btc"
+                    },
+                    {
+                      "key": "quote",
+                      "value": "usdt"
+                    },
+                    {
+                      "key": "start",
+                      "value": "2026-05-09",
+                      "description": "Start datetime filter"
+                    },
+                    {
+                      "key": "end",
+                      "value": "2026-05-12",
+                      "description": "End datetime filter"
+                    }
+                  ]
+                }
+              },
+              "_postman_previewlanguage": null,
+              "header": null,
+              "cookie": [],
+              "body": null
+            },
+            {
+              "name": "Get snapshot history by pair - order variations",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/pairs/history?base=btc&quote=usdt&order_by=exchange&sort_dir=asc",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "pairs",
+                    "history"
+                  ],
+                  "query": [
+                    {
+                      "key": "base",
+                      "value": "btc"
+                    },
+                    {
+                      "key": "quote",
+                      "value": "usdt"
+                    },
+                    {
+                      "key": "order_by",
+                      "value": "exchange"
+                    },
+                    {
+                      "key": "sort_dir",
+                      "value": "asc",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "_postman_previewlanguage": "",
+              "header": [],
+              "cookie": [
+                {
+                  "expires": "Invalid Date",
+                  "domain": "",
+                  "path": ""
+                }
+              ],
+              "body": ""
+            }
+          ]
+        }
+      ],
+      "description": "Requests to receive an additional information as:\n\n- All exchanges\n    \n- All pairs\n    \n- History of snapshots by pairs"
+    }
+  ],
+  "auth": {
+    "type": "bearer"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8001",
+      "description": "base url for sending requests"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "lastSnapshotId",
+      "value": ""
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+	"id": "889cf1fd-e45f-4062-8d00-28e61fd13933",
+	"name": "Price Observer Environment",
+	"values": [
+		{
+			"key": "username",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "password",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"color": null,
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2026-05-24T20:27:51.282Z",
+	"_postman_exported_using": "Postman/12.11.4"
+}
