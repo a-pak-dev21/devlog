@@ -3,7 +3,6 @@
 # Mainly analysed by using pandas module
 
 import pandas as pd
-from typing import Any
 from pathlib import Path
 from app.settings import BASE_DIR
 import json

@@ -12,7 +12,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/login")
 def login(user_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
 
-    # In later versions, add extracting scopes from request form taky
+    # In later versions, add extracting scopes from request form
     username = user_data.username
     password = user_data.password
     payload = authenticate_user(username, password)

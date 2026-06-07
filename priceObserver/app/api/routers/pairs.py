@@ -5,6 +5,7 @@ from typing import Annotated
 from sqlalchemy import Connection
 from app.db.session import get_conn
 from app.api.dto import PaginationDTO, PairFiltersDTO
+from app.api.deps.filters import get_pair_history_filters
 
 
 router = APIRouter(tags=["pairs"])
@@ -21,7 +22,7 @@ def get_pairs(conn: Annotated[Connection, Depends(get_conn)],
 @router.get("/pairs/history", response_model= list[Snapshot])
 def get_pair_history(conn: Annotated[Connection, Depends(get_conn)],
                      pagination_params: Annotated[PaginationDep, Depends(PaginationDep)],
-                     filter_params: Annotated[PairHistoryFilterDep, Depends(PairHistoryFilterDep)]
+                     filter_params: Annotated[PairHistoryFilterDep, Depends(get_pair_history_filters)]
                      ):
     
     pagination = PaginationDTO(**pagination_params.model_dump())

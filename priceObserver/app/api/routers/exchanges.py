@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends
-from app.api.schemas import ExchangeOut
 import app.db.db_queries as dbq
 from typing import Annotated
 from app.db.session import get_conn

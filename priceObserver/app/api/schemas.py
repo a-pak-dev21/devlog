@@ -19,7 +19,7 @@ class PairHistoryFilterDep(BaseModel):
     )
     exchange: str| None = Query(
         default=None,
-        description="EXchange name filter",
+        description="Exchange name filter",
         examples=["binance.com"]
     )
       
@@ -53,7 +53,7 @@ class PairHistoryFilterDep(BaseModel):
         if self.start is not None and self.end is not None:
             if self.start > self.end:
                 raise ValueError("Starting datetime cannot be later then ending datetime")
-        return self     
+        return self
     
 
 class PaginationDep(BaseModel):

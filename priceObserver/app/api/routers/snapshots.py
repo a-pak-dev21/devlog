@@ -7,7 +7,6 @@ from typing import Annotated
 from sqlalchemy import Connection
 from app.db.session import get_conn
 from app.api.deps.api_auth import get_current_user
-from datetime import datetime, timezone
 from fastapi.exceptions import HTTPException
 from app.api.schemas import PayloadOut
 

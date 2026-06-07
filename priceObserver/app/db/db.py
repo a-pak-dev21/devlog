@@ -3,18 +3,13 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import SQLAlchemyError
 from decimal import Decimal
 from logging import getLogger
-from app.services.collector import run_snapshot
 from app.db.models import metadata, pairs_table, exchanges_table, prices_table, snapshots_table, errors_table
-from app.settings import settings
 from datetime import datetime
 from typing import Literal, Annotated
-from app.db.session import get_engine, get_conn
+from app.db.session import get_conn
 from fastapi import Depends
 
 logger = getLogger(__name__)
-
-
-
 
 def create_tables(engine: Engine) -> None:
     metadata.create_all(engine)
