@@ -25,6 +25,6 @@ def get_pair_history_filters(base: str = Query(min_length=1, max_length=10),
         return PairHistoryFilterDep(base=base, quote=quote,
                                     start=start, end=end,
                                     exchange=exchange)
-    except ValidationError as e:
+    except ValidationError:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                             detail="Invalid pair filter parameters")
