@@ -2,7 +2,7 @@ name: Learn Github Actions
 run-name: ${{ github.actor }} learning Github Actions
 on: push
 jobs:
-  check-bats-version:
+  check-pytest-version:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
