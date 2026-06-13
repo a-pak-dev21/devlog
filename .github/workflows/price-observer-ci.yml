@@ -4,9 +4,11 @@ on:
   push:
     paths:
       - "priceObserver/**"
+      - ".github/workflows/price-observer-ci.yml"
   pull_request:
     paths:
       - "priceObserver/**"
+      - ".github/workflows/price-observer-ci.yml"
 jobs:
   CI-for-Price-Observer:
     runs-on: ubuntu-latest
