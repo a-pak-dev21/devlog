@@ -14,7 +14,7 @@ def auth_headers(client) -> dict[str, str]:
     response = client.post("/auth/login",
                           data={
                               "username": "admin",
-                              "password": os.getenv("ADMIN_TEST_PWD")
+                              "password": os.getenv("ADMIN_TEST_PASSWORD")
                           })
     assert response.status_code == 200
 
