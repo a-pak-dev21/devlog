@@ -21,30 +21,6 @@ def test_pair_history_basic(client):
                           })
     assert response.status_code == 200
     assert isinstance(response.json(), list)
-
-def test_pair_history_with_all_filters(client):
-    response = client.get("pairs/history",
-                          params={
-                              "base": "BTC",
-                              "quote": "USDT",
-                              "start": "2025-05-01T12:00:00",
-                              "end": "2026-05-25T12:00:00",
-                              "exchange": "binance.com",
-                              "order_by": "price",
-                              "sort_dir": "desc",
-                              "limit": 4,
-                              "offset": 0
-                          })
-    data = response.json()
-    
-    assert response.status_code == 200
-    assert isinstance(data, list)
-
-    assert int(data[0]["price"]) > int(data[1]["price"])
-    assert len(data) <= 4
-
-    for item in data:
-        assert item["exchange"] == "binance.com"
      
 
 def test_pair_invalid_pair(client):

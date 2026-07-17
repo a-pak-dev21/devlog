@@ -1,17 +1,29 @@
 name: price-observer
 
+x-db-env: &db-env
+  POSTGRES_USER: ${POSTGRES_USER}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  POSTGRES_DB: ${POSTGRES_DB}
+  POSTGRES_HOST: db
+  POSTGRES_PORT: 5432
+  LOG_LEVEL: ${LOG_LEVEL}
+
+x-auth-env: &auth-env
+  ADMIN_USERNAME: ${ADMIN_USERNAME}
+  ADMIN_TEST_PASSWORD: ${ADMIN_TEST_PASSWORD}
+  ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+  JWT_ALGORITHM: HS256
+  ACCESS_TOKEN_EXPIRE_MINUTES: 15
+
 services:
   app:
+    build: .
     image: price-observer:dev
     ports:
       - "${APP_PORT}:8000"
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
-      - LOG_LEVEL=${LOG_LEVEL}
+      <<: [*db-env, *auth-env]
     depends_on:
       db:
         condition: service_healthy
@@ -25,7 +37,7 @@ services:
 
 
   db:
-    image: postgres:latest
+    image: postgres:18
     ports:
       - "5431:5432"
     restart: always
@@ -36,7 +48,7 @@ services:
     volumes:
       - psql_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -48,17 +60,22 @@ services:
     restart: no
     working_dir: /app
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
-      - LOG_LEVEL=${LOG_LEVEL}
+      <<: [*db-env, *auth-env]
     depends_on:
       db:
         condition: service_healthy
     command: ["alembic", "upgrade", "head"]
-      
+
+  
+  test:
+    image: price-observer:dev
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      <<: [*db-env, *auth-env]
+    command: ["pytest", "tests"]
+
 
 volumes:
   psql_data:      
